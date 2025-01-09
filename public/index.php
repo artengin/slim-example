@@ -9,9 +9,10 @@ $app = AppFactory::create();
 $app->addErrorMiddleware(true, true, true);
 
 $app->get('/', function ($request, $response) {
-    $response->getBody()->write('Welcome to Slim!');
-    return $response;
-    // Благодаря пакету slim/http этот же код можно записать короче
-    // return $response->write('Welcome to Slim!');
+    return $response->write('Welcome to Slim!');
+});
+
+$app->get('/users', function ($request, $response) {
+    return $response->write('GET /users');
 });
 $app->run();
