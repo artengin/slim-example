@@ -13,6 +13,7 @@ $container->set('renderer', function () {
     // Параметром передается базовая директория, в которой будут храниться шаблоны
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
 });
+
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 
@@ -20,7 +21,7 @@ $app->get('/', function ($request, $response) {
     return $response->write('Welcome to Slim!');
 });
 
-$app->post('/users', function ($request, $response) {
+$app->post('/test', function ($request, $response) {
     return $response->withStatus(302);
 });
 
@@ -40,7 +41,7 @@ $app->get('/users', function ($request, $response) use ($users) {
     } else {
         $filteredUsers = [];
         foreach ($users as $user) {
-            if (str_contains($user, $term)) {
+            if (str_contains($user, strtolower($term))) {
                 $filteredUsers[] = $user;
             }
         }
@@ -53,7 +54,32 @@ $app->get('/users', function ($request, $response) use ($users) {
         sort($filteredUsers);
     }
     $params = ['users' => $filteredUsers, 'value' => $value];
-    return $this->get('renderer')->render($response, 'users/index.phtml', $params);
+    return $this->get('renderer')->render($response, 'search/index.phtml', $params);
+});
+
+//$repo = new App\UserRepository();
+
+$app->get('/users/new/', function ($request, $response) {
+    $params = [
+        'user' => ['name' => '', 'email' => ''],
+        'errors' => []
+    ];
+    return $this->get('renderer')->render($response, "users/new.phtml", $params);
+});
+
+$app->post('/users', function ($request, $response) use ($repo) {
+    $validator = new App\Validator();
+    $user = $request->getParsedBodyParam('user');
+    $errors = $validator->validate($user);
+    $params = [
+        'user' => $user,
+        'errors' => $errors
+    ];
+    if (count($errors) === 0) {
+        //$repo->save($user);
+        return $response->withRedirect('/users', 302);
+    }
+    return $this->get('renderer')->render($response->withStatus(422), "users/new.phtml", $params);
 });
 
 $app->run();
