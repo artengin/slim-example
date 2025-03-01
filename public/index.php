@@ -55,7 +55,7 @@ $app->get('/users', function ($request, $response) use ($users) {
     }
     $params = ['users' => $filteredUsers, 'value' => $value];
     return $this->get('renderer')->render($response, 'search/index.phtml', $params);
-});
+})->setName('users');
 
 //$repo = new App\UserRepository();
 
@@ -66,8 +66,8 @@ $app->get('/users/new/', function ($request, $response) {
     ];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
-
-$app->post('/users', function ($request, $response) use ($repo) {
+$router = $app->getRouteCollector()->getRouteParser();
+$app->post('/users', function ($request, $response) use ($router) {
     $validator = new App\Validator();
     $user = $request->getParsedBodyParam('user');
     $errors = $validator->validate($user);
@@ -77,7 +77,7 @@ $app->post('/users', function ($request, $response) use ($repo) {
     ];
     if (count($errors) === 0) {
         //$repo->save($user);
-        return $response->withRedirect('/users', 302);
+        return $response->withRedirect($router->urlFor('users'), 302);
     }
     return $this->get('renderer')->render($response->withStatus(422), "users/new.phtml", $params);
 });
